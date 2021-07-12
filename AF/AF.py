@@ -1,21 +1,8 @@
 from .__init__ import EPSILON
-
 from .utils import *
+from .State import *
+
 from copy import deepcopy
-
-
-class State:
-
-    def __init__(self, name, derived_states=None):
-        self.id = str(id(self))
-        self.name = name
-        self.derived_states = derived_states
-
-    def __eq__(self, other):
-        return id(self) == id(other) or self.name == other.name
-
-    def __lt__(self, other):
-        return self.name < other.name
 
 
 class AFD:
@@ -152,7 +139,8 @@ class AFND(AFD):
     def determinize(self):
         K = []
         E = deepcopy(self.E)
-        E.remove(EPSILON)
+        if EPSILON in E:
+            E.remove(EPSILON)
 
         create_condition = make_create_condition(E)
         T = {}
