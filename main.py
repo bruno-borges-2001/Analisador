@@ -12,7 +12,6 @@ from AF import *
 
 # E = ["0", "1"]
 
-
 # create_condition = make_create_condition(E)
 # T = {
 #     q0.id: create_condition([q1, q0]),
@@ -26,9 +25,11 @@ from AF import *
 # }
 # S = q0
 # F = [q4, q5, q6, q7]
+
 # af = AFD(K, E, T, S, F)
 # af.print_transition_table()
 # print(af.test_input("00010010010101"))
+
 p = State("{p}")
 q = State("{q}")
 r = State("{r}")
