@@ -21,6 +21,7 @@ class State:
 class AFD:
 
     def __init__(self, K, E, T, S, F):
+        self.states = K
         self.set_state_map(K)
 
         self.E = E

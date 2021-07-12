@@ -1,4 +1,5 @@
 from AF import *
+from operations import *
 
 q0 = State("{p}")
 q1 = State("{p,q}")
@@ -52,3 +53,5 @@ afnd.print_transition_table()
 
 afd = afnd.determinize()
 afd.print_transition_table()
+
+# union(afd, afnd)
