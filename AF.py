@@ -1,14 +1,19 @@
-EPSILON = "*epsilon*"
+from utils import *
+from copy import deepcopy
 
 
 class State:
 
-    def __init__(self, name):
+    def __init__(self, name, derived_states=None):
         self.id = str(id(self))
         self.name = name
+        self.derived_states = derived_states
 
     def __eq__(self, other):
-        return id(self) == id(other)
+        return id(self) == id(other) or self.name == other.name
+
+    def __lt__(self, other):
+        return self.name < other.name
 
 
 class AFD:
@@ -54,7 +59,7 @@ class AFD:
     def print_transition_table(self):
         row_format = "{:>15}" * (len(self.E) + 1)
         print(row_format.format("", *self.E))
-        for state_id, transitions in T.items():
+        for state_id, transitions in self.T.items():
             state = self.K[state_id]
             state = "-> " + state.name if state == self.S else "* " + \
                 state.name if state in self.F else state.name
@@ -76,7 +81,7 @@ class AFND(AFD):
 
     def epsilon_fecho(self, k):
         if EPSILON not in self.E:
-            return [k]
+            return [k.id]
 
         p = [k]
         c = set([k.id])
@@ -94,7 +99,9 @@ class AFND(AFD):
                     p.append(next_state)
                     c.add(next_state.id)
 
-        return list(c)
+        c = list(c)
+        c.sort()
+        return c
 
     def test_input(self, input_string):
         self.current_state = list(self.epsilon_fecho(self.S))
@@ -131,68 +138,58 @@ class AFND(AFD):
 
         return aux
 
+    def get_string_states_from_list(self, li):
+        return ','.join(list(map(lambda x: self.K[x].name, li)))
 
-def make_create_condition(E):
-    def create_condition(K):
-        if len(K) != len(E):
-            raise Exception("K must have the same length as E")
-        # transitions dict(key: entrada, value: prox_estado)
-        transitions = dict(zip(E, K))
+    def get_list_states_by_ids(self, li):
+        return list(map(lambda x: self.K[x], li))
 
-        def condition(e):
-            return transitions[str(e)] if e in E else None
+    def get_list_ids_by_states(self, li):
+        return list(map(lambda x: x.id, li))
 
-        return condition
-    return create_condition
+    def determinize(self):
+        K = []
+        E = deepcopy(self.E)
+        E.remove(EPSILON)
 
+        create_condition = make_create_condition(E)
+        T = {}
 
-# q0 = State("{p}")
-# q1 = State("{p,q}")
-# q2 = State("{p,r}")
-# q3 = State("{p,q,r}")
-# q4 = State("{p,q,s}")
-# q5 = State("{p,r,s}")
-# q6 = State("{p,q,r,s}")
-# q7 = State("{p,s}")
-# K = [q0, q1, q2, q3, q4, q5, q6, q7]
+        S_states = self.epsilon_fecho(self.S)
+        S_name = self.get_string_states_from_list(S_states)
+        S_derived_states = self.get_list_states_by_ids(S_states)
+        S = State(S_name, S_derived_states)
+        K.append(S)
 
-# E = ["0", "1"]
+        F = []
 
-# create_condition = make_create_condition(E)
-# T = {
-#     q0.id: create_condition([q1, q0]),
-#     q1.id: create_condition([q3, q2]),
-#     q2.id: create_condition([q4, q0]),
-#     q3.id: create_condition([q6, q2]),
-#     q4.id: create_condition([q6, q5]),
-#     q5.id: create_condition([q4, q7]),
-#     q6.id: create_condition([q6, q5]),
-#     q7.id: create_condition([q4, q7])
-# }
-# S = q0
-# F = [q4, q5, q6, q7]
+        test_states = [S]
+        while len(test_states) > 0:
+            current_state = test_states.pop(0)
+            current_state_transition = []
+            for e in E:
+                next_states = []
+                for cs in current_state.derived_states:
+                    for i in self.step(cs, e):
+                        next_states += self.epsilon_fecho(self.K[i])
 
-# af = AFD(K, E, T, S, F)
-# af.print_transition_table()
-# print(af.test_input("00010010010101"))
+                next_states = list(set(next_states))
+                next_states.sort()
+                new_state = State(
+                    self.get_string_states_from_list(next_states),
+                    self.get_list_states_by_ids(next_states)
+                )
 
-p = State("{p}")
-q = State("{q}")
-r = State("{r}")
+                if new_state not in K:
+                    K.append(new_state)
+                    test_states.append(new_state)
+                    current_state_transition.append(new_state)
+                    if find_any_el_from_list(new_state.derived_states, self.F):
+                        F.append(new_state)
+                else:
+                    current_state_transition.append(
+                        next(i for i in K if i == new_state)
+                    )
+            T[current_state.id] = create_condition(current_state_transition)
 
-K = [p, q, r]
-E = [EPSILON, "a", "b", "c"]
-
-create_condition = make_create_condition(E)
-T = {
-    p.id: create_condition([None, p, q, r]),
-    q.id: create_condition([p, q, r, None]),
-    r.id: create_condition([q, r, None, p])
-}
-
-S = p
-F = [r]
-
-afnd = AFND(K, E, T, S, F)
-afnd.print_transition_table()
-print(afnd.test_input("ba"))
+        return AFD(K, E, T, S, F)
