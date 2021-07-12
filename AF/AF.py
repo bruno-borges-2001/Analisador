@@ -1,4 +1,6 @@
-from utils import *
+from .__init__ import EPSILON
+
+from .utils import *
 from copy import deepcopy
 
 

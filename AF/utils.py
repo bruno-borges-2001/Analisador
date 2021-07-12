@@ -1,3 +1,11 @@
+def find_any_el_from_list(search_list, find_list):
+    for i in search_list:
+        if i in find_list:
+            return True
+
+    return False
+
+
 def make_create_condition(E):
     def create_condition(K):
         if len(K) != len(E):
