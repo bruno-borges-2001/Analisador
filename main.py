@@ -1,4 +1,5 @@
 from AF import *
+from Grammar import *
 
 # q0 = State("{p}")
 # q1 = State("{p,q}")
@@ -53,32 +54,64 @@ from AF import *
 # afd = afnd.determinize()
 # afd.print_transition_table()
 
-A = State("A")
-B = State("B")
-C = State("C")
-D = State("D")
-X = State("X")
+# S = State("S")
+# A = State("A")
+# B = State("B")
+# C = State("C")
+# D = State("D")
+# X = State("X")
 
-K = [A, B, C, D, X]
-E = ["a", "b"]
+# K = [S, A, B, C, D, X]
+# E = ["0", "1"]
 
-create_condition = make_create_condition(E)
-T = {
-    A.id: create_condition([[B, X], A]),
-    B.id: create_condition([A, [B, X]]),
-    C.id: create_condition([D, [C, X]]),
-    D.id: create_condition([[C, X], D]),
-    X.id: create_condition([None, None]),
-}
+# create_condition = make_create_condition(E)
+# T = {
+#     S.id: create_condition([[S, X], A]),
+#     A.id: create_condition([B, C]),
+#     B.id: create_condition([D, [S, X]]),
+#     C.id: create_condition([A, B]),
+#     D.id: create_condition([C, D]),
+#     X.id: create_condition([None, None]),
+# }
 
-S = A
-F = [X]
+# S = S
+# F = [X]
 
-afnd = AFND(K, E, T, S, F)
+# afnd = AFND(K, E, T, S, F)
 # afnd.print_transition_table()
-print(afnd.test_input("aaabbabbbab"))
 
-afd = afnd.determinize()
+# afd = afnd.determinize()
 # afd.print_transition_table()
 
-print(afd.test_input("aaabbabbbab"))
+g1 = Grammar(*ParseGrammar("tests/teste.txt").get_params(), "m1")
+r1 = g1.get_strings_from_generation_list(g1.generate(1000, False))
+
+g2 = Grammar(*ParseGrammar("tests/teste2.txt").get_params(), "m2")
+r2 = g2.get_strings_from_generation_list(g2.generate(1000, False))
+
+g3 = Grammar(*ParseGrammar("tests/teste3.txt").get_params(), "m3")
+r3 = g3.get_strings_from_generation_list(g3.generate(10000, False))
+
+print(len(r3))
+
+# r = []
+# for i in r1:
+#     if i not in r2 and i in r3:
+#         r.append(i)
+
+a = list(range(0, 30, 3))
+b = list(range(0, 30, 3))
+
+for i in r3:
+    count = [0, 0]
+    for c in i:
+        count[int(c) - 1] += 1
+
+    d = count[0] + 2 * count[1]
+    if (d in b):
+        b.remove(d)
+
+    if (d not in a):
+        print(i, count, d)
+
+print(b)
