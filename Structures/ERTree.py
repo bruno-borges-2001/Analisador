@@ -73,90 +73,71 @@ class ERTree:
         self.root = self.split_expression(f"({ps})#")
 
     def split_expression(self, ps):
-        levels = [1] * len(ps)
-        aux = [0] * len(ps)
-        add_value = 0
+        if (len(ps) == 1):
+            return Node(ps)
 
-        for i in range(len(ps)):
-            if (ps[i] == ")"):
-                aux[i] -= add_value
-                add_value -= 1
-
-            levels[i] += add_value
-
-            if (ps[i] == "("):
-                add_value += 1
-                aux[i] += add_value
-
-            if (ps[i] == "|"):
-                aux[i] = "|"
-
-            if (ps[i] == "*"):
-                # levels[i] += 1
-                # levels[i] *= -1
-                aux[i] = "*"
+        cur_level = 1
+        levels = []
+        aux = []
 
         rps = list(reversed(ps))
-        rlevels = list(reversed(levels))
-        raux = list(reversed(aux))
 
-        concats = [i for i, x in enumerate(rlevels) if x == 1]
-        unions = get_char_on_level("|", levels, aux)
+        for i in range(len(rps)):
+            if (rps[i] == "("):
+                cur_level -= 1
 
-        gvalues = []
-
-        rclosures = get_char_on_level("*", rlevels, raux)
-
-        operation = None
-
-        if len(unions) > 0:
-            operation = "|"
-            gvalues = [ps[:unions[-1]], ps[unions[-1]+1:]]
-        elif raux[0] == "*" and raux[1] == 0:
-            operation = "*"
-            gvalues = [ps[:-1]]
-        elif raux[0] == "*" and raux.index(1) + 1 == len(raux):
-            operation = "*"
-            gvalues = [ps[1:-2]]
-        else:
-            operation = "."
-            for i, g in enumerate(concats):
-                if raux[g] == 0 or (raux[g] == "*" and raux[g+1] == 0):
-                    if len(gvalues) == 1:
-                        gvalues.insert(0, ''.join(reversed(rps[g:])))
-                        break
-                    else:
-                        gvalues.insert(0, rps[g])
-                else:
-                    if raux[g] == -1:
-                        if g-1 in rclosures:
-                            gvalues.insert(0, ''.join(
-                                reversed(rps[g-1:concats[i+1]+1])))
-                        else:
-                            gvalues.insert(0, ''.join(
-                                reversed(rps[g+1:concats[i+1]])))
-                    else:
-                        continue
-
-        if (len(gvalues) == 2):
-            gvalues = Node(
-                operation,
-                Node(gvalues[0])
-                if len(gvalues[0]) == 1 else self.split_expression(gvalues[0]),
-                Node(gvalues[1])
-                if len(gvalues[1]) == 1 else self.split_expression(gvalues[1])
-            )
-        else:
-            if operation is None:
-                gvalues = Node(gvalues[0])
-            else:
-                gvalues = Node(
-                    operation,
-                    Node(gvalues[0])
-                    if len(gvalues[0]) == 1 else self.split_expression(gvalues[0])
+            if rps[i] == "|" and cur_level == 1:
+                return Node(
+                    "|",
+                    self.split_expression(''.join(reversed(rps[i+1:]))),
+                    self.split_expression(''.join(reversed(rps[:i])))
                 )
+            elif rps[i] == "*" and cur_level == 1:
+                aux.append("*")
+            elif rps[i] in "()" and cur_level == 1:
+                aux.append(rps[i])
+            else:
+                aux.append(0)
 
-        return gvalues
+            levels.append(cur_level)
+
+            if (rps[i] == ")"):
+                cur_level += 1
+
+        zipped = list(zip(levels, aux))
+
+        items = []
+
+        end = 0
+
+        if (zipped[0] == (1, 0)):
+            items.insert(0, rps[0])
+        elif (zipped[0] == (1, ")")):
+            end = zipped.index((1, "("))
+            items.insert(0, ''.join(reversed(rps[1:end])))
+        elif (zipped[0] == (1, "*")):
+            if (zipped[1] == (1, ")")):
+                end = zipped.index((1, "("))
+                if end == len(zipped) - 1:
+                    return Node("*", self.split_expression(''.join(reversed(rps[2:-1]))))
+                else:
+                    items.insert(0, ''.join(reversed(rps[:end+1])))
+            else:
+                end = 1
+                items.insert(0, ''.join(reversed(rps[:end+1])))
+
+        end += 1
+
+        if (zipped[end] == (1, ")")):
+            new_end = zipped.index((1, "("), end)
+            if (new_end == len(zipped) - 1):
+                items.insert(0, ''.join(reversed(rps[end+1:-1])))
+            else:
+                items.insert(0, ''.join(reversed(rps[end:])))
+        else:
+            items.insert(0, ''.join(reversed(rps[end:])))
+
+        return Node(".", self.split_expression(items[0]), self.split_expression(items[1]))
 
 
 # (aa|ba)#
