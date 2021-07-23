@@ -14,3 +14,11 @@ class ER:
         tree = ERTree()
         tree.create_tree(self.regex)
         tree.pretty_print(tree.root)
+        leafs = tree.get_leafs()
+        count = 0
+        for l in leafs:
+            count += 1
+            l.nid = count
+        nodes = tree.flat_tree()
+        print(list(map(lambda x: x.value, nodes)))
+        

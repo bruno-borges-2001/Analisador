@@ -2,7 +2,6 @@ CONCAT = "."
 UNION = "|"
 CLOSURE = "*"
 EPSILON = "&"
-EOS = "#"
 
 
 def get_char_on_level(char, levels, aux):
@@ -17,29 +16,80 @@ def get_char_on_level(char, levels, aux):
 
 class Node:
 
-    def __init__(self, value, node_1=None, node_2=None, root=False):
-        self.nid = str(id(self))
+    def __init__(self, value, node_1=None, node_2=None):
         self.value = value
+        self.nid = 0
 
         self.nodes = [node_1, node_2]
-        self.root = root
-
-    def id(self):
-        return self.nid
 
     def leaf(self):
         return not any(self.nodes)
 
-    def fixed(self):
+    def get_leafs(self):
         if self.leaf():
-            return [] if len(self.value) == 1 else [self]
+            return [self]
         else:
-            result = [] if len(self.value) == 1 else [self]
-            if self.nodes[0] is not None:
-                result += self.nodes[0].fixed()
-            if self.nodes[1] is not None:
-                result += self.nodes[1].fixed()
-            return result
+            if self.value == CLOSURE:
+                return self.nodes[0].get_leafs()
+            else:
+                return self.nodes[0].get_leafs() + self.nodes[1].get_leafs()
+
+    def get_node_array(self):
+        if self.leaf():
+            return [self]
+        else:
+            if self.value == CLOSURE:
+                return [self] + self.nodes[0].get_node_array()
+            else:
+                return [self] + self.nodes[0].get_node_array() + self.nodes[1].get_node_array()
+
+    def nullable(self):
+        if self.leaf():
+            return self.value == EPSILON
+        else:
+            if self.value == UNION:
+                return any(map(lambda x: x.nullable, self.nodes))
+            elif self.value == CONCAT:
+                return all(map(lambda x: x.nullable, self.nodes))
+            elif self.value == CLOSURE:
+                return True
+        return False
+
+    def firstpos(self):
+        if self.leaf():
+            if self.value == EPSILON:
+                return []
+            else:
+                return [self.value]
+        else:
+            if self.value == UNION:
+                return self.nodes[0].firstpos() + self.nodes[1].firstpos()
+            elif self.value == CONCAT:
+                if self.nodes[0].nullable():
+                    self.nodes[0].firstpos() + self.nodes[1].firstpos()
+                else:
+                    self.nodes[0].firstpos()
+            elif self.value == CLOSURE:
+                return self.nodes[0].firstpos()
+        return []
+
+    def lastpos(self):
+        if self.leaf():
+            if self.value == EPSILON:
+                return []
+            else:
+                return [self.value]
+        else:
+            if self.value == UNION:
+                return self.nodes[0].lastpos() + self.nodes[1].lastpos()
+            elif self.value == CONCAT:
+                if self.nodes[1].nullable():
+                    self.nodes[0].lastpos() + self.nodes[1].lastpos()
+                else:
+                    self.nodes[1].lastpos()
+            elif self.value == CLOSURE:
+                return self.nodes[0].lastpos()
+        return []
 
     def __str__(self):
         return self.value
@@ -139,5 +189,10 @@ class ERTree:
 
         return Node(".", self.split_expression(items[0]), self.split_expression(items[1]))
 
+    def get_leafs(self):
+        return self.root.get_leafs()
+
+    def flat_tree(self):
+        return self.root.get_node_array()
 
 # (aa|ba)#
