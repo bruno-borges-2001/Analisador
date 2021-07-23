@@ -91,6 +91,30 @@ class Node:
                 return self.nodes[0].lastpos()
         return []
 
+    def pretty_print(self, level=0, last=[]):
+        string = " " * (level - 1) * 4
+        if level > 0:
+            string += ("╚" if len(last) >
+                       0 and last[-1] == level-1 else "╠") + "═" * 2 + " "
+            for x in range(0, len(string) - 3, 4):
+                if string[x] != " ":
+                    continue
+                elif x == 0:
+                    string = "║" + string[1:]
+                elif x / 4 not in last:
+                    string = string[:x] + "║" + string[x+1:]
+        string += self.value
+        print(string)
+        new_level = level + 1
+        new_last = [] + last
+        if self.nodes[0] is not None:
+            if self.nodes[1] is None:
+                new_last += [level]
+            self.nodes[0].pretty_print(new_level, new_last)
+        if self.nodes[1] is not None:
+            new_last += [level]
+            self.nodes[1].pretty_print(new_level, new_last)
+
     def __str__(self):
         return self.value
 
@@ -100,24 +124,8 @@ class ERTree:
     def __init__(self):
         self.root = None
 
-    def pretty_print(self, node, level=0, last=False):
-        string = " " * (level - 1) * 4
-        if level > 0:
-            string += ("╚" if last else "╠") + "═" * 2 + " "
-            for x in range(0, len(string) - 3, 4):
-                if string[x] != " ":
-                    continue
-                elif x == 0:
-                    string = "║" + string[1:]
-                else:
-                    string = string[:x] + "║" + string[x+1:]
-        string += str(node)
-        print(string)
-        new_level = level + 1
-        if node.nodes[0] is not None:
-            self.pretty_print(node.nodes[0], new_level, node.nodes[1] is None)
-        if node.nodes[1] is not None:
-            self.pretty_print(node.nodes[1], new_level, True)
+    def pretty_print(self):
+        self.root.pretty_print()
 
     def create_tree(self, ps):
         self.root = self.split_expression(f"({ps})#")
