@@ -6,7 +6,7 @@ class State:
         self.derived_states = derived_states
 
     def __eq__(self, other):
-        return id(self) == id(other) or self.name == other.name
+        return other is not None and (id(self) == id(other) or self.name == other.name)
 
     def __lt__(self, other):
         return self.name < other.name

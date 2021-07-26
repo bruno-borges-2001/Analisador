@@ -51,8 +51,9 @@ class AFD:
         print(row_format.format("", *self.E))
         for state_id, transitions in self.T.items():
             state = self.K[state_id]
-            state = "-> " + state.name if state == self.S else "* " + \
-                state.name if state in self.F else state.name
+            sstate = "* " if state in self.F else ""
+            sstate += "-> " if state == self.S else ""
+            sstate += state.name
             n_states = list(
                 map(
                     lambda i: list(map(lambda x: x.name, i))
@@ -61,7 +62,7 @@ class AFD:
                 )
             )
 
-            print(row_format.format(state, *map(str, n_states)))
+            print(row_format.format(sstate, *map(str, n_states)))
 
 
 class AFND(AFD):
@@ -129,7 +130,16 @@ class AFND(AFD):
         return aux
 
     def get_string_states_from_list(self, li):
-        return ','.join(list(map(lambda x: self.K[x].name, li)))
+        states = list(map(lambda x: self.K[x].name, li))
+        new_li = []
+        for s in states:
+            if "," in s:
+                new_li += s.split(",")
+            else:
+                new_li += s
+        states = list(set(new_li))
+        states.sort()
+        return ','.join(states)
 
     def get_list_states_by_ids(self, li):
         return list(map(lambda x: self.K[x], li))
@@ -165,7 +175,10 @@ class AFND(AFD):
                         next_states += self.epsilon_fecho(self.K[i])
 
                 next_states = list(set(next_states))
-                next_states.sort()
+                if len(next_states) == 0:
+                    current_state_transition.append(None)
+                    continue
+
                 new_state = State(
                     self.get_string_states_from_list(next_states),
                     self.get_list_states_by_ids(next_states)

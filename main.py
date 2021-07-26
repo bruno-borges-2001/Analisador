@@ -3,6 +3,6 @@ from Grammar import *
 from AF import *
 from ER import *
 
-er = ER("a-z(1(0-9)*0)*0-9")
+er = ER("(0-3|6-7)*|a(4-5)b*")
 
 afd = er.get_afd(True)

@@ -2,3 +2,5 @@ CONCAT = "."
 UNION = "|"
 CLOSURE = "*"
 EPSILON = "&"
+
+DIG = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"

@@ -1,3 +1,5 @@
+from DEFINITIONS import DIG
+
 
 def find_any_el_from_list(search_list, find_list):
     for i in search_list:
@@ -19,3 +21,6 @@ def make_create_condition(E):
 
         return condition
     return create_condition
+
+
+

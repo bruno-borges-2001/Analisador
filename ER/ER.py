@@ -1,16 +1,11 @@
 from DEFINITIONS import *
 
 from Structures import ERTree
-from AF import make_create_condition, AFD, State
+from AF import make_create_condition, AFD, AFND, State
 
 
 def group_char(string):
     pass
-
-
-LC = "abcdefghijklmnopqrstuvwxyz"
-UC = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-NUM = "0123456789"
 
 
 class ER:
@@ -23,15 +18,9 @@ class ER:
             i = ps.index("-")
             replace_string = ""
             while True:
-                if ps[i-1] in LC and ps[i+1] in LC and LC.index(ps[i-1]) < LC.index(ps[i+1]):
+                if ps[i-1] in DIG and ps[i+1] in DIG and DIG.index(ps[i-1]) < DIG.index(ps[i+1]):
                     replace_string = UNION.join(
-                        LC[LC.index(ps[i-1]):LC.index(ps[i+1])+1])
-                elif ps[i-1] in UC and ps[i+1] in UC and UC.index(ps[i-1]) < UC.index(ps[i+1]):
-                    replace_string = UNION.join(
-                        UC[UC.index(ps[i-1]):UC.index(ps[i+1])+1])
-                elif ps[i-1] in NUM and ps[i+1] in NUM and NUM.index(ps[i-1]) < NUM.index(ps[i+1]):
-                    replace_string = UNION.join(
-                        NUM[NUM.index(ps[i-1]):NUM.index(ps[i+1])+1])
+                        DIG[DIG.index(ps[i-1]):DIG.index(ps[i+1])+1])
                 else:
                     raise Exception("Erro de formação")
 
@@ -57,6 +46,23 @@ class ER:
                 else:
                     E.append(self.regex[i])
         return list(set(E))
+
+    def get_entries_from_group(self, group):
+        [start, end] = list(map(lambda x: DIG.index(x), group.split("-")))
+        E = []
+        for c in range(len(DIG)):
+            if start > end:
+                if c >= start or c <= end:
+                    E.append(DIG[c])
+            else:
+                if c >= start and c <= end:
+                    E.append(DIG[c])
+        return E
+
+    def check_entry_in_group(self, e, group):
+        [start, end] = list(map(lambda x: DIG.index(x), group.split("-")))
+        E = self.get_entries_from_group(group)
+        return e in E
 
     def get_afd(self, debug=False):
         tree = ERTree()
@@ -133,7 +139,39 @@ class ER:
 
             T[cur_state.id] = create_condition(cur_state_transitions)
 
-        afd = AFD(K, E, T, S, F)
+        new_E = []
+        for e in E:
+            if len(e) > 1 and "-" in e:
+                new_E += self.get_entries_from_group(e)
+            else:
+                new_E += e
+        new_E = list(set(new_E))
+        new_E.sort()
+
+        create_condition = make_create_condition(new_E)
+
+        new_T = {}
+        for k in K:
+            transitions = []
+            for e in new_E:
+                next_states = []
+                if e in E:
+                    next_states.append(T[k.id](e))
+                groups = [g for g in E if len(
+                    g) > 1 and "-" in g and self.check_entry_in_group(e, g)]
+                for g in groups:
+                    next_states.append(T[k.id](g))
+
+                next_states = [ns for ns in next_states if ns is not None]
+
+                if len(next_states) == 0:
+                    next_states = None
+
+                transitions.append(next_states)
+
+            new_T[k.id] = create_condition(transitions)
+
+        afd = AFND(K, new_E, new_T, S, F).determinize()
 
         if debug:
             afd.print_transition_table()

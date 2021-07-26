@@ -42,7 +42,7 @@ class Node:
         elif self.value == "*":
             return [self] + self.nodes[0].get_followpos_changer()
         elif self.value == "|":
-            return [] + self.nodes[0].get_followpos_changer()
+            return [] + self.nodes[0].get_followpos_changer() + self.nodes[1].get_followpos_changer()
         else:
             return []
 
@@ -163,7 +163,7 @@ class ERTree:
         return (leaves, followpos_nodes)
 
     def split_expression(self, ps):
-        if (len(ps) == 1 or ps == "a-z" or ps == "A-Z" or ps == "0-9"):
+        if (len(ps) == 1 or (len(ps) == 3 and ps[1] == "-")):
             return Node(ps)
 
         cur_level = 1
@@ -221,6 +221,8 @@ class ERTree:
             else:
                 end = 1
                 items.insert(0, ''.join(reversed(rps[:end+1])))
+                if (end == len(rps) - 1):
+                    return Node("*", Node(rps[end]))
 
         end += 1
 
