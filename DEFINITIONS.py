@@ -1,0 +1,4 @@
+CONCAT = "."
+UNION = "|"
+CLOSURE = "*"
+EPSILON = "&"

@@ -1,7 +1,4 @@
-CONCAT = "."
-UNION = "|"
-CLOSURE = "*"
-EPSILON = "&"
+from DEFINITIONS import *
 
 
 def get_char_on_level(char, levels, aux):
@@ -19,20 +16,44 @@ class Node:
     def __init__(self, value, node_1=None, node_2=None):
         self.value = value
         self.nid = 0
+        self.parent = None
 
         self.nodes = [node_1, node_2]
 
     def leaf(self):
         return not any(self.nodes)
 
-    def get_leafs(self):
+    def set_parent(self, parent=None):
+        self.parent = parent
+        if self.leaf():
+            return
+        else:
+            if self.value == CLOSURE:
+                self.nodes[0].set_parent(self)
+                return
+            else:
+                self.nodes[0].set_parent(self)
+                self.nodes[1].set_parent(self)
+                return
+
+    def get_followpos_changer(self):
+        if self.value == ".":
+            return [self] + self.nodes[0].get_followpos_changer() + self.nodes[1].get_followpos_changer()
+        elif self.value == "*":
+            return [self] + self.nodes[0].get_followpos_changer()
+        elif self.value == "|":
+            return [] + self.nodes[0].get_followpos_changer()
+        else:
+            return []
+
+    def get_leaves(self):
         if self.leaf():
             return [self]
         else:
             if self.value == CLOSURE:
-                return self.nodes[0].get_leafs()
+                return self.nodes[0].get_leaves()
             else:
-                return self.nodes[0].get_leafs() + self.nodes[1].get_leafs()
+                return self.nodes[0].get_leaves() + self.nodes[1].get_leaves()
 
     def get_node_array(self):
         if self.leaf():
@@ -48,9 +69,9 @@ class Node:
             return self.value == EPSILON
         else:
             if self.value == UNION:
-                return any(map(lambda x: x.nullable, self.nodes))
+                return any(map(lambda x: x.nullable(), self.nodes))
             elif self.value == CONCAT:
-                return all(map(lambda x: x.nullable, self.nodes))
+                return all(map(lambda x: x.nullable(), self.nodes))
             elif self.value == CLOSURE:
                 return True
         return False
@@ -60,15 +81,15 @@ class Node:
             if self.value == EPSILON:
                 return []
             else:
-                return [self.value]
+                return [self]
         else:
             if self.value == UNION:
                 return self.nodes[0].firstpos() + self.nodes[1].firstpos()
             elif self.value == CONCAT:
                 if self.nodes[0].nullable():
-                    self.nodes[0].firstpos() + self.nodes[1].firstpos()
+                    return self.nodes[0].firstpos() + self.nodes[1].firstpos()
                 else:
-                    self.nodes[0].firstpos()
+                    return self.nodes[0].firstpos()
             elif self.value == CLOSURE:
                 return self.nodes[0].firstpos()
         return []
@@ -78,15 +99,15 @@ class Node:
             if self.value == EPSILON:
                 return []
             else:
-                return [self.value]
+                return [self]
         else:
             if self.value == UNION:
                 return self.nodes[0].lastpos() + self.nodes[1].lastpos()
             elif self.value == CONCAT:
                 if self.nodes[1].nullable():
-                    self.nodes[0].lastpos() + self.nodes[1].lastpos()
+                    return self.nodes[0].lastpos() + self.nodes[1].lastpos()
                 else:
-                    self.nodes[1].lastpos()
+                    return self.nodes[1].lastpos()
             elif self.value == CLOSURE:
                 return self.nodes[0].lastpos()
         return []
@@ -118,6 +139,9 @@ class Node:
     def __str__(self):
         return self.value
 
+    def __lt__(self, other):
+        return self.nid < other.nid
+
 
 class ERTree:
 
@@ -129,9 +153,17 @@ class ERTree:
 
     def create_tree(self, ps):
         self.root = self.split_expression(f"({ps})#")
+        self.root.set_parent()
+        leaves = self.get_leaves()
+        count = 0
+        for l in leaves:
+            count += 1
+            l.nid = count
+        followpos_nodes = self.root.get_followpos_changer()
+        return (leaves, followpos_nodes)
 
     def split_expression(self, ps):
-        if (len(ps) == 1):
+        if (len(ps) == 1 or ps == "a-z" or ps == "A-Z" or ps == "0-9"):
             return Node(ps)
 
         cur_level = 1
@@ -154,6 +186,8 @@ class ERTree:
                 aux.append("*")
             elif rps[i] in "()" and cur_level == 1:
                 aux.append(rps[i])
+            elif rps[i] in "-" and i >= 1 and i <= len(rps) - 2 and cur_level == 1 and rps[i-1] not in "(|)*" and rps[i+1] not in "(|)*":
+                aux.append(rps[i])
             else:
                 aux.append(0)
 
@@ -169,7 +203,11 @@ class ERTree:
         end = 0
 
         if (zipped[0] == (1, 0)):
-            items.insert(0, rps[0])
+            if (zipped[1] == (1, "-")):
+                items.insert(0, ''.join(reversed(rps[:3])))
+                end += 2
+            else:
+                items.insert(0, rps[0])
         elif (zipped[0] == (1, ")")):
             end = zipped.index((1, "("))
             items.insert(0, ''.join(reversed(rps[1:end])))
@@ -197,8 +235,8 @@ class ERTree:
 
         return Node(".", self.split_expression(items[0]), self.split_expression(items[1]))
 
-    def get_leafs(self):
-        return self.root.get_leafs()
+    def get_leaves(self):
+        return self.root.get_leaves()
 
     def flat_tree(self):
         return self.root.get_node_array()

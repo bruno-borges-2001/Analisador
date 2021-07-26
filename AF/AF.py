@@ -1,4 +1,4 @@
-from .__init__ import EPSILON
+from DEFINITIONS import EPSILON
 from .utils import *
 from .State import *
 
