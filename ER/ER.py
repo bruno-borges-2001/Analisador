@@ -110,7 +110,7 @@ class ER:
 
         while False in Dstates.values():
             cur_state_name = [k for k, v in Dstates.items() if v == False][0]
-            cur_state = [k for k in K if k == State(cur_state_name)][0]
+            cur_state = [k for k in K if k == cur_state_name][0]
             cur_state_entries = cur_state_name.split(',')
             cur_state_transitions = []
             Dstates[cur_state_name] = True
@@ -133,7 +133,7 @@ class ER:
                     if str(leaves[-1].nid) in U_name:
                         F.append(U)
                 else:
-                    U = [k for k in K if k == State(U_name)][0]
+                    U = [k for k in K if k == U_name][0]
 
                 cur_state_transitions.append(U)
 

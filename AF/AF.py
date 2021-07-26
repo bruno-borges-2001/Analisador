@@ -47,7 +47,7 @@ class AFD:
         self.current_state = self.T[self.current_state.id](e)
 
     def print_transition_table(self):
-        row_format = "{:>15}" * (len(self.E) + 1)
+        row_format = "{:>10}" * (len(self.E) + 1)
         print(row_format.format("", *self.E))
         for state_id, transitions in self.T.items():
             state = self.K[state_id]
@@ -136,7 +136,7 @@ class AFND(AFD):
             if "," in s:
                 new_li += s.split(",")
             else:
-                new_li += s
+                new_li.append(s)
         states = list(set(new_li))
         states.sort()
         return ','.join(states)
@@ -147,7 +147,7 @@ class AFND(AFD):
     def get_list_ids_by_states(self, li):
         return list(map(lambda x: x.id, li))
 
-    def determinize(self):
+    def determinize(self, start_state_name=None):
         K = []
         E = deepcopy(self.E)
         if EPSILON in E:
@@ -157,7 +157,10 @@ class AFND(AFD):
         T = {}
 
         S_states = self.epsilon_fecho(self.S)
-        S_name = self.get_string_states_from_list(S_states)
+        if start_state_name is None:
+            S_name = self.get_string_states_from_list(S_states)
+        else:
+            S_name = start_state_name
         S_derived_states = self.get_list_states_by_ids(S_states)
         S = State(S_name, S_derived_states)
         K.append(S)

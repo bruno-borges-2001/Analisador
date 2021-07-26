@@ -2,11 +2,17 @@ from AF import *
 
 
 def union(AF1, AF2):
-    new_initial_state = State("union-state")
+    new_initial_state_name = "us"
+
+    while new_initial_state_name in AF1.states or new_initial_state_name in AF2.states:
+        new_initial_state_name += "-"
+
+    new_initial_state = State(new_initial_state_name)
 
     K = [new_initial_state] + AF1.states + AF2.states
 
-    E = list(set(AF1.E + AF2.E))
+    E = list(set([EPSILON] + AF1.E + AF2.E))
+    E.sort()
 
     # acho que AF1.E e AF2.E deve ser igual
     # if AF1.E != AF2.E:
@@ -15,7 +21,7 @@ def union(AF1, AF2):
     create_condition = make_create_condition(E)
     T = {
         new_initial_state.id: create_condition(
-            [[AF1.S, AF2.S] if x == 0 else None for x in range(len(AF2.E))]
+            [AF1.S, AF2.S] + [None] * (len(E) - 2)
         )
     }
 
