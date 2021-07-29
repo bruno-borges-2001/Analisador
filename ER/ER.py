@@ -10,7 +10,8 @@ def group_char(string):
 
 class ER:
 
-    def __init__(self, regex):
+    def __init__(self, erid, regex):
+        self.id = erid
         self.regex = regex
 
     def parse_generic(self, ps):
@@ -34,9 +35,16 @@ class ER:
         E = []
         ignore_next = False
         ignore_chars = ["(", "|", "*", ")"]
+        add_next = False
         for i in range(len(self.regex)):
+            if add_next:
+                add_next = False
+                E.append(self.regex[i])
             if ignore_next:
                 ignore_next = False
+                continue
+            if self.regex[i] == "\\":
+                add_next = True
                 continue
             if self.regex[i] not in ignore_chars:
                 if self.regex[i] == "-" and i-1 >= 0 and i+1 < len(self.regex) and self.regex[i-1] not in ignore_chars and self.regex[i+1] not in ignore_chars:
@@ -130,10 +138,11 @@ class ER:
                     Dstates[U_name] = False
                     U = State(U_name)
                     K.append(U)
-                    if str(leaves[-1].nid) in U_name:
-                        F.append(U)
                 else:
                     U = [k for k in K if k == U_name][0]
+
+                if str(leaves[-1].nid) in U_name and U not in F:
+                    F.append(U)
 
                 cur_state_transitions.append(U)
 
@@ -170,6 +179,9 @@ class ER:
                 transitions.append(next_states)
 
             new_T[k.id] = create_condition(transitions)
+
+        for f in F:
+            f.regex_final_id = [self.id]
 
         afd = AFND(K, new_E, new_T, S, F).determinize()
 

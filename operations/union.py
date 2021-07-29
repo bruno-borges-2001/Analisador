@@ -11,8 +11,12 @@ def union(AF1, AF2):
 
     K = [new_initial_state] + AF1.states + AF2.states
 
-    E = list(set([EPSILON] + AF1.E + AF2.E))
+    E = AF1.E + AF2.E
+    if EPSILON in E:
+        E.remove(EPSILON)
+    E = list(set(E))
     E.sort()
+    E = [EPSILON] + E
 
     # acho que AF1.E e AF2.E deve ser igual
     # if AF1.E != AF2.E:
@@ -21,7 +25,7 @@ def union(AF1, AF2):
     create_condition = make_create_condition(E)
     T = {
         new_initial_state.id: create_condition(
-            [AF1.S, AF2.S] + [None] * (len(E) - 2)
+            [[AF1.S, AF2.S]] + [None] * (len(E) - 1)
         )
     }
 

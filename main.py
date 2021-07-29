@@ -1,18 +1,70 @@
 from Operations import *
-from Grammar import *
 from AF import *
 from ER import *
 
-er1 = ER("(0-3)*|a(4-5)b*")
-er2 = ER("b|a*c(a|b)*")
-er3 = ER("(0-9)*")
+token_file = open("debug/tokens.txt")
 
-afd1 = er1.get_afd()
-afd2 = er2.get_afd()
-afd3 = er3.get_afd()
+token_er_dict = {}
 
-nafd = union(afd1, afd2)
-nafd = union(nafd, afd3)
+reserved_words = {}
 
-afd = nafd.determinize("S")
-afd.print_transition_table()
+ignore_er = []
+
+ER("string", "\"(0-z| )*\"").get_afd().test_input("\"hello world\"")
+
+for line in token_file.readlines():
+    if "\n" in line:
+        line = line[:-1]
+    if len(line) == 0:
+        continue
+
+    if line[0] == "#":
+        continue
+
+    if line[0] == "\"":
+        ignore_er.append(ER("-", line[1:-1]).get_afd())
+        continue
+
+    [fp, sp] = line.split("=", 1)
+
+    if ":" in sp:
+        [pattern, er_string] = sp.split(":", 1)
+
+        er_string = er_string[1:-1]
+
+        if pattern in token_er_dict.keys() and token_er_dict[pattern].test_input(er_string)[-1]:
+            reserved_words[fp] = er_string
+
+    else:
+        token_er_dict[fp] = ER(fp, sp[1:-1]).get_afd()
+
+token_er_dict["reserved_words"] = ER(
+    "RW", '|'.join(reserved_words.values())).get_afd()
+
+ERs = list(token_er_dict.values())
+
+if len(ERs) == 0:
+    exit()
+elif len(ERs) == 1:
+    afnd = ERs[0]
+elif len(ERs) >= 2:
+    afnd = union(ERs[0], ERs[1])
+    for er in ERs[2:]:
+        afnd = union(afnd, er)
+
+
+er_afd = afnd.determinize("S")
+er_afd.print_transition_table("debug/AFD.txt")
+
+ig_afnd = None
+
+if len(ignore_er) == 1:
+    ig_afnd = ignore_er[0]
+elif len(ignore_er) >= 2:
+    ig_afnd = union(ignore_er[0], ignore_er[1])
+    for i in ignore_er:
+        ig_afnd = union(ig_afnd, i)
+
+
+ignored_afd = ig_afnd.determinize("I")
+ignored_afd.print_transition_table("debug/IG_AFD.txt")

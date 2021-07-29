@@ -1,9 +1,0 @@
-N = { S, A, B, C }
-T = { 1, 2 }
-P = {
-  S -> epsilon | 1B | 2C
-  A -> 1B | 2C
-  B -> 1C | 2A | 2
-  C -> 1A | 2B | 1
-}
-S = S

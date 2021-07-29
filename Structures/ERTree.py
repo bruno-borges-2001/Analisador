@@ -37,6 +37,8 @@ class Node:
                 return
 
     def get_followpos_changer(self):
+        if self.leaf():
+            return []
         if self.value == ".":
             return [self] + self.nodes[0].get_followpos_changer() + self.nodes[1].get_followpos_changer()
         elif self.value == "*":
@@ -166,69 +168,93 @@ class ERTree:
         if (len(ps) == 1 or (len(ps) == 3 and ps[1] == "-")):
             return Node(ps)
 
+        if (len(ps) == 2 and ps[0] == "\\"):
+            return Node(ps[1])
+
         cur_level = 1
         levels = []
         aux = []
 
         rps = list(reversed(ps))
 
+        is_counting = False
+        ignore_char = False
+
         for i in range(len(rps)):
-            if (rps[i] == "("):
+            if (i + 1 < len(rps) and rps[i+1] == "\\"):
+                ignore_char = True
+
+            if (rps[i] == "(" and not ignore_char):
                 cur_level -= 1
 
-            if rps[i] == "|" and cur_level == 1:
+            if rps[i] == "|" and cur_level == 1 and not ignore_char:
                 return Node(
                     "|",
                     self.split_expression(''.join(reversed(rps[i+1:]))),
                     self.split_expression(''.join(reversed(rps[:i])))
                 )
-            elif rps[i] == "*" and cur_level == 1:
+            elif rps[i] == "*" and cur_level == 1 and not ignore_char:
                 aux.append("*")
-            elif rps[i] in "()" and cur_level == 1:
+                start_p = i
+                is_counting = True
+            elif rps[i] in ")" and cur_level == 1 and not ignore_char:
                 aux.append(rps[i])
-            elif rps[i] in "-" and i >= 1 and i <= len(rps) - 2 and cur_level == 1 and rps[i-1] not in "(|)*" and rps[i+1] not in "(|)*":
+                if not is_counting:
+                    start_p = i
+            elif rps[i] in "(" and cur_level == 1 and not ignore_char:
                 aux.append(rps[i])
+                levels[start_p] = i
+                is_counting = False
+            elif rps[i] in "-" and i >= 1 and i <= len(rps) - 2 and cur_level == 1 and rps[i-1] not in "(|)*" and rps[i+1] not in "(|)*" and not ignore_char:
+                aux.append(rps[i])
+            elif is_counting:
+                levels[start_p] = i
+                is_counting = False
+                aux.append(0)
+            elif ignore_char:
+                aux.append(-1)
             else:
                 aux.append(0)
 
-            levels.append(cur_level)
+            levels.append(cur_level if cur_level == 1 else 0)
 
-            if (rps[i] == ")"):
+            if (rps[i] == ")" and not ignore_char):
                 cur_level += 1
 
-        zipped = list(zip(levels, aux))
+            ignore_char = False
+
+        zipped = list(zip(aux, levels))
 
         items = []
 
         end = 0
 
-        if (zipped[0] == (1, 0)):
+        if (zipped[0] == (0, 1)):
             if (zipped[1] == (1, "-")):
                 items.insert(0, ''.join(reversed(rps[:3])))
                 end += 2
             else:
                 items.insert(0, rps[0])
-        elif (zipped[0] == (1, ")")):
-            end = zipped.index((1, "("))
-            items.insert(0, ''.join(reversed(rps[1:end])))
-        elif (zipped[0] == (1, "*")):
-            if (zipped[1] == (1, ")")):
-                end = zipped.index((1, "("))
-                if end == len(zipped) - 1:
-                    return Node("*", self.split_expression(''.join(reversed(rps[2:-1]))))
-                else:
-                    items.insert(0, ''.join(reversed(rps[:end+1])))
-            else:
-                end = 1
-                items.insert(0, ''.join(reversed(rps[:end+1])))
-                if (end == len(rps) - 1):
-                    return Node("*", Node(rps[end]))
+                end += 1
+        elif (zipped[0][0] == ")"):
+            end = zipped[0][1] + 1
+            items.insert(0, ''.join(reversed(rps[:end])))
+        elif (zipped[0][0] == "*"):
+            end = zipped[0][1] + 1
+            items.insert(0, ''.join(reversed(rps[:end])))
+        elif (zipped[0][0] == -1):
+            end += 2
+            items.insert(0, ''.join(reversed(rps[:end])))
 
-        end += 1
+        if end >= len(rps):
+            if zipped[0][0] == ")":
+                return self.split_expression(items[0][1:-1])
+            elif zipped[0][0] == "*":
+                return Node("*", self.split_expression(items[0][:-1]))
 
-        if (zipped[end] == (1, ")")):
-            new_end = zipped.index((1, "("), end)
-            if (new_end == len(zipped) - 1):
+        if (zipped[end][0] == ")"):
+            new_end = zipped[end][1] + 1
+            if (new_end >= len(zipped)):
                 items.insert(0, ''.join(reversed(rps[end+1:-1])))
             else:
                 items.insert(0, ''.join(reversed(rps[end:])))
