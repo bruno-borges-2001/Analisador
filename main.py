@@ -38,6 +38,8 @@ for line in token_file.readlines():
     else:
         token_er_dict[fp] = ER(fp, sp[1:-1]).get_afd()
 
+token_file.close()
+
 token_er_dict["reserved_words"] = ER(
     "RW", '|'.join(reserved_words.values())).get_afd()
 
