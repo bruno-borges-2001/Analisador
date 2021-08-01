@@ -53,7 +53,6 @@ def insert_token_file(filename):
     elif len(ERs) >= 2:
         afnd = union(ERs[0], ERs[1])
         for er in ERs[2:]:
-            afnd.print_transition_table("debug/Test.txt")
             afnd = union(afnd, er)
 
     er_afd = afnd.determinize()
