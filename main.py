@@ -1,6 +1,7 @@
-from Operations import *
+from operations import *
 from AF import *
 from ER import *
+from AnalisadorLexico import *
 
 token_file = open("debug/tokens.txt")
 
@@ -70,3 +71,14 @@ elif len(ignore_er) >= 2:
 
 ignored_afd = ig_afnd.determinize("I")
 ignored_afd.print_transition_table("debug/IG_AFD.txt")
+
+# TODO: Por algum motivo o operador ":" nao eh reconhecido pelo AFD.
+# TODO: Eh possivel juntar o er_afd e ignored_afd em um unico AFD?
+# Se for possivel, ficaria mais facil pois nao daria problema de NoneType
+# TODO: Por algum motivo o operador "def" eh reconhecido como id
+
+#print(er_afd.test_input(':'))
+#print(er_afd.text_input('def'))
+#print(er_afd.test_input('teste:'))
+start_lexical_analyzer("debug/input.txt", er_afd, ignored_afd)
+

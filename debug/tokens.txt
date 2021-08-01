@@ -8,11 +8,12 @@ string="\"(0-z| )*\""
 
 # PALAVRAS RESERVADAS
 
-define=id:"def"
+def=id:"def"
 if=id:"if"
 else=id:"else"
 for=id:"for"
 in=id:"in"
+while=id:"while"
 
 "#(0-z| )*#"
 " "
