@@ -1,8 +1,8 @@
-id="(A-z|_)(0-z|_)*"
+id="(a-z|_)(a-z|_)*"
 op="+|-|\*|/|\*\*"
 attr="="
 compare="==|!=|<|>|<=|>="
-def_op=":"
+def_op="\:"
 di="(&|-)(0-9)(0-9)*(&|.(0-9)*)"
 string="\"(0-z| )*\""
 
@@ -10,9 +10,9 @@ string="\"(0-z| )*\""
 
 def=id:"def"
 if=id:"if"
+in=id:"in"
 else=id:"else"
 for=id:"for"
-in=id:"in"
 while=id:"while"
 
 "#(0-z| )*#"

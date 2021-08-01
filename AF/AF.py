@@ -39,7 +39,7 @@ class AFD:
         for i in input_string:
             self.step(i)
             if self.current_state is None:
-                return ("error state", False)
+                return ("error state", None, False)
 
         return (self.current_state.name, self.current_state.regex_final_id, self.current_state in self.F)
 
@@ -132,7 +132,7 @@ class AFND(AFD):
                 accept = True
 
         return (
-            list(map(lambda x: x.name, self.current_state)),
+            list(map(lambda x: (x.name, x.regex_final_id), self.current_state)),
             accept
         )
 
@@ -149,14 +149,6 @@ class AFND(AFD):
 
     def get_string_states_from_list(self, li):
         states = list(map(lambda x: self.K[x].name, li))
-        new_li = []
-        for s in states:
-            if "," in s:
-                new_li += s.split(",")
-            else:
-                new_li.append(s)
-        states = list(set(new_li))
-        states.sort()
         return ','.join(states)
 
     def get_list_states_by_ids(self, li):
@@ -201,6 +193,7 @@ class AFND(AFD):
                         next_states += self.epsilon_fecho(self.K[i])
 
                 next_states = list(set(next_states))
+
                 if len(next_states) == 0:
                     current_state_transition.append(None)
                     continue

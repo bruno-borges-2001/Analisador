@@ -9,6 +9,13 @@ def union(AF1, AF2):
 
     new_initial_state = State(new_initial_state_name)
 
+    for s in AF2.states:
+        while True:
+            if s.name in list(map(lambda x: x.name, AF1.states)):
+                s.name = "-" + s.name
+            else:
+                break
+
     K = [new_initial_state] + AF1.states + AF2.states
 
     E = AF1.E + AF2.E
