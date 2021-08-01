@@ -1,6 +1,6 @@
+# teste de comentario #
 def teste:
   if i == 2**3:
     print("hello world")
   else:
-    print(i)
     print(i)
