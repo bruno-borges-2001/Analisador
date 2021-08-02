@@ -215,43 +215,47 @@ def get_char_coords(text, i):
 
 def start_lexical_analyzer(file, afd, set_error=None):
 
-    no_parsed_data = file.read()
-    data = no_parsed_data.replace("\n", " ")
+    # no_parsed_data = file.read()
+    # data = no_parsed_data.replace("\n", " ")
+    data = file.readlines()
     file.close()
-
     symbol_table = []
-    lexeme_begin = 0
-    forward = 0
-    i = 0
-
     count = 0
 
-    add_symbol = False
-    last_regex = None
-    while i < len(data):
-        [state, regex_id, success] = afd.test_input(
-            data[lexeme_begin:i+1])
+    for l in data:
+        line = l.replace("\n", " ")
+        add_symbol = False
+        last_regex = None
+        i = 0
+        lexeme_begin = 0
 
-        if success:
-            i += 1
-            new_regex_li = sort_by_priority(regex_id)
-            if new_regex_li[0] != '-':
-                last_regex = new_regex_li[0]
+        while i < len(line):
+            [state, regex_id, success] = afd.test_input(
+                line[lexeme_begin:i+1])
+
+            if success:
+                i += 1
+                last_regex = sort_by_priority(regex_id)[0]
                 add_symbol = True
             else:
-                lexeme_begin = i
-        else:
-            if add_symbol:
-                symbol_table.append((data[lexeme_begin:i], last_regex))
-                add_symbol = False
-                lexeme_begin = i
-            elif state == "error state":
-                if set_error is not None:
-                    set_error(get_char_coords(no_parsed_data, i))
-                print(f"Erro na posição {i}")
-                i += 1
-                lexeme_begin = i
-            else:
-                i += 1
+                if add_symbol:
+                    add_symbol = False
+                    if last_regex != "-":
+                        symbol_table.append((line[lexeme_begin:i], last_regex))
+                    last_regex = None
+                    lexeme_begin = i
+                elif state == "error state":
+                    if set_error is not None:
+                        set_error(get_char_coords(l, count))
+                    print(f"Erro na posição {i}")
+                    i += 1
+                    lexeme_begin = i
+                else:
+                    i += 1
+
+            count += 1
+
+        if last_regex is not None and last_regex != "-":
+            symbol_table.append((line[lexeme_begin:i], last_regex))
 
     return symbol_table
