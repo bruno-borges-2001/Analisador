@@ -4,10 +4,6 @@ from Structures import ERTree
 from AF import make_create_condition, AFD, AFND, State
 
 
-def group_char(string):
-    pass
-
-
 class ER:
 
     def __init__(self, erid, regex):
@@ -34,7 +30,7 @@ class ER:
     def get_entries(self):
         E = []
         ignore_next = False
-        ignore_chars = ["(", "|", "*", ")"]
+        ignore_chars = ["(", UNION, CLOSURE, ")", ONEORNONE]
         add_next = False
         for i in range(len(self.regex)):
             if add_next:
