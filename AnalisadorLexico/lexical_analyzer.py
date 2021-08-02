@@ -235,6 +235,7 @@ def start_lexical_analyzer(file, afd, set_error=None):
 
             if success:
                 i += 1
+                count += 1
                 last_regex = sort_by_priority(regex_id)[0]
                 add_symbol = True
             else:
@@ -246,14 +247,14 @@ def start_lexical_analyzer(file, afd, set_error=None):
                     lexeme_begin = i
                 elif state == "error state":
                     if set_error is not None:
-                        set_error(get_char_coords(l, count))
-                    print(f"Erro na posição {i}")
+                        set_error(get_char_coords(''.join(data), count))
+                    print(f"Erro na posição {count}")
                     i += 1
+                    count += 1
                     lexeme_begin = i
                 else:
                     i += 1
-
-            count += 1
+                    count += 1
 
         if last_regex is not None and last_regex != "-":
             symbol_table.append((line[lexeme_begin:i], last_regex))
