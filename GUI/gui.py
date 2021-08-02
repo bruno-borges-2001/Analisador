@@ -91,11 +91,15 @@ class GUI:
             "BOLD", f"{coords[0]}.{coords[1]}", f"{coords[0]}.{coords[1]+1}")
 
     def start_analyzer(self):
+        # clear set errors and old symbol table
         self.code_text_area.tag_remove("BOLD", "1.0", END)
         self.symbol_table.delete(*self.symbol_table.get_children())
+        # get text areas values
         text_code = self.code_text_area.get("1.0", "end")
         text_token = self.token_text_area.get("1.0", "end")
+        # get tokens AFD from file
         afd = insert_token(StringIO(text_token))
+        # use result from last step to create the symbol table and insert on component
         symbol_table_output = start_lexical_analyzer(
             StringIO(text_code), afd, self.set_error)
         for i in symbol_table_output:

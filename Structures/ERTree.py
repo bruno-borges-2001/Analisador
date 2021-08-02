@@ -153,14 +153,16 @@ class ERTree:
     def pretty_print(self):
         self.root.pretty_print()
 
-    def create_tree(self, ps):
-        self.root = self.split_expression(f"({ps})#")
-        self.root.set_parent()
+    def create_tree(self, regex):
+        # add '#' to the end of the regex and initiate the recursive algorithm
+        self.root = self.split_expression(f"({regex})#")
+        # get and enumerate the leaf nodes
         leaves = self.get_leaves()
         count = 0
         for l in leaves:
             count += 1
             l.nid = count
+        # get '*' and '.' nodes
         followpos_nodes = self.root.get_followpos_changer()
         return (leaves, followpos_nodes)
 
@@ -168,6 +170,7 @@ class ERTree:
         if (len(ps) == 1 or (len(ps) == 3 and ps[1] == "-")):
             return Node(ps)
 
+        # check for \ to ignore next char and use in the regex
         if (len(ps) == 2 and ps[0] == "\\"):
             return Node(ps[1])
 
@@ -180,6 +183,9 @@ class ERTree:
         is_counting = False
         ignore_char = False
 
+        # from the end to the start, create a list with the depth of each expression
+        # it also stops when finds a '|' on depth level 1 and uses this algorithm with each side of the operator
+        # sets in a aux list the end index of each () expression
         for i in range(len(rps)):
             if (i + 1 < len(rps) and rps[i+1] == "\\"):
                 ignore_char = True
@@ -233,6 +239,7 @@ class ERTree:
 
         end = 0
 
+        # gets first element
         if (zipped[0] == (0, 1)):
             if (zipped[1] == (1, "-")):
                 items.insert(0, ''.join(reversed(rps[:3])))
@@ -247,6 +254,7 @@ class ERTree:
             end += 2
             items.insert(0, ''.join(reversed(rps[:end])))
 
+        # if there is only one element, treats the situation on the fitting way
         if end >= len(rps):
             if zipped[0][0] == ")":
                 return self.split_expression(items[0][1:-1])
@@ -255,6 +263,7 @@ class ERTree:
             elif zipped[0][0] == ONEORNONE:
                 return self.split_expression(f"{items[0][:-1]}{UNION}{EPSILON}")
 
+        # the second item is just the next char until the end
         if (zipped[end][0] == ")"):
             new_end = zipped[end][1] + 1
             if (new_end >= len(zipped)):

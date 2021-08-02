@@ -69,12 +69,14 @@ class ER:
         return e in E
 
     def get_afd(self, debug=False):
+        # create tree from regex
         tree = ERTree()
         [leaves, fp_nodes] = tree.create_tree(self.regex)
 
         if debug:
             tree.pretty_print()
 
+        # get followpos
         followpos = dict((str(el.nid), []) for el in leaves)
 
         for node in fp_nodes:
@@ -92,6 +94,7 @@ class ER:
             if debug:
                 print(k, list(map(lambda x: x.nid, v)))
 
+        # start the afd creation
         K = []
         E = self.get_entries()
         E.sort()
@@ -112,6 +115,7 @@ class ER:
 
         F = []
 
+        # get states and transitions
         while False in Dstates.values():
             cur_state_name = [k for k, v in Dstates.items() if v == False][0]
             cur_state = [k for k in K if k == cur_state_name][0]
@@ -153,6 +157,7 @@ class ER:
         new_E = list(set(new_E))
         new_E.sort()
 
+        # parse generic groups (u.e. a-z)
         create_condition = make_create_condition(new_E)
 
         new_T = {}
@@ -179,6 +184,7 @@ class ER:
         for f in F:
             f.regex_final_id = [self.id]
 
+        # parsing generic groups generate an AFND, so determinizing is needed
         afd = AFND(K, new_E, new_T, S, F).determinize()
 
         if debug:

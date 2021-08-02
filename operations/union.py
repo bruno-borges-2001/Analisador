@@ -2,6 +2,7 @@ from AF import *
 
 
 def union(AF1, AF2):
+    # creates the start state and avoids repeating names
     new_initial_state_name = "us"
 
     while new_initial_state_name in AF1.states or new_initial_state_name in AF2.states:
@@ -9,6 +10,7 @@ def union(AF1, AF2):
 
     new_initial_state = State(new_initial_state_name)
 
+    # parse AF2 states to avoid repeating names
     for s in AF2.states:
         while True:
             if s.name in list(map(lambda x: x.name, AF1.states)):
@@ -19,15 +21,12 @@ def union(AF1, AF2):
     K = [new_initial_state] + AF1.states + AF2.states
 
     E = AF1.E + AF2.E
+    # guarantees EPSILON on the start of the list
     if EPSILON in E:
         E.remove(EPSILON)
     E = list(set(E))
     E.sort()
     E = [EPSILON] + E
-
-    # acho que AF1.E e AF2.E deve ser igual
-    # if AF1.E != AF2.E:
-    #     raise Exception("Automatos devem aceitar as mesmas entradas para união")
 
     create_condition = make_create_condition(E)
     T = {
