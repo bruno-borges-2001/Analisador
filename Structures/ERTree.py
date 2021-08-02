@@ -187,14 +187,18 @@ class ERTree:
             if (rps[i] == "(" and not ignore_char):
                 cur_level -= 1
 
-            if rps[i] == "|" and cur_level == 1 and not ignore_char:
+            if rps[i] == UNION and cur_level == 1 and not ignore_char:
                 return Node(
-                    "|",
+                    UNION,
                     self.split_expression(''.join(reversed(rps[i+1:]))),
                     self.split_expression(''.join(reversed(rps[:i])))
                 )
-            elif rps[i] == "*" and cur_level == 1 and not ignore_char:
-                aux.append("*")
+            elif rps[i] == CLOSURE and cur_level == 1 and not ignore_char:
+                aux.append(CLOSURE)
+                start_p = i
+                is_counting = True
+            elif rps[i] == ONEORNONE and cur_level == 1 and not ignore_char:
+                aux.append(ONEORNONE)
                 start_p = i
                 is_counting = True
             elif rps[i] in ")" and cur_level == 1 and not ignore_char:
@@ -236,10 +240,7 @@ class ERTree:
             else:
                 items.insert(0, rps[0])
                 end += 1
-        elif (zipped[0][0] == ")"):
-            end = zipped[0][1] + 1
-            items.insert(0, ''.join(reversed(rps[:end])))
-        elif (zipped[0][0] == "*"):
+        elif (zipped[0][0] in [")", CLOSURE, ONEORNONE]):
             end = zipped[0][1] + 1
             items.insert(0, ''.join(reversed(rps[:end])))
         elif (zipped[0][0] == -1):
@@ -249,8 +250,10 @@ class ERTree:
         if end >= len(rps):
             if zipped[0][0] == ")":
                 return self.split_expression(items[0][1:-1])
-            elif zipped[0][0] == "*":
-                return Node("*", self.split_expression(items[0][:-1]))
+            elif zipped[0][0] == CLOSURE:
+                return Node(CLOSURE, self.split_expression(items[0][:-1]))
+            elif zipped[0][0] == ONEORNONE:
+                return self.split_expression(f"{items[0][:-1]}{UNION}{EPSILON}")
 
         if (zipped[end][0] == ")"):
             new_end = zipped[end][1] + 1
