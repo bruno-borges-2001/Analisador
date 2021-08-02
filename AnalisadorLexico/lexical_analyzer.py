@@ -204,7 +204,6 @@ def get_char_coords(text, i):
     count = 0
     while count != i:
         if text[count] == "\n":
-            i += 1
             count += 1
             row += 1
             column = 0
@@ -217,7 +216,7 @@ def get_char_coords(text, i):
 def start_lexical_analyzer(file, afd, set_error=None):
 
     no_parsed_data = file.read()
-    data = no_parsed_data.replace("\n", "")
+    data = no_parsed_data.replace("\n", " ")
     file.close()
 
     symbol_table = []

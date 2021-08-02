@@ -91,6 +91,7 @@ class GUI:
             "BOLD", f"{coords[0]}.{coords[1]}", f"{coords[0]}.{coords[1]+1}")
 
     def start_analyzer(self):
+        self.code_text_area.tag_remove("BOLD", "1.0", END)
         self.symbol_table.delete(*self.symbol_table.get_children())
         text_code = self.code_text_area.get("1.0", "end")
         text_token = self.token_text_area.get("1.0", "end")
