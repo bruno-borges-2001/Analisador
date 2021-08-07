@@ -1,0 +1,23 @@
+              Lexema               Token
+             outside                  id
+                 def                  RW
+               teste                  id
+                   :              def_op
+                  if                  RW
+                   i                  id
+                  ==             compare
+                   2                  di
+                  **                  op
+                   3                  di
+                   :              def_op
+               print                  id
+       "hello world"              string
+                else                  RW
+                   :              def_op
+               print                  id
+                   i                  id
+                   i                  id
+                   =                attr
+                   i                  id
+                   +                  op
+                   1                  di

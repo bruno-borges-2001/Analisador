@@ -166,11 +166,10 @@ class AFND(AFD):
         create_condition = make_create_condition(E)
         T = {}
 
+        # creating first state
         S_states = self.epsilon_fecho(self.S)
-        if start_state_name is None:
-            S_name = self.get_string_states_from_list(S_states)
-        else:
-            S_name = start_state_name
+        S_name = self.get_string_states_from_list(S_states) if start_state_name is None \
+            else start_state_name
         S_derived_states = self.get_list_states_by_ids(S_states)
         S = State(S_name, S_derived_states)
         K.append(S)

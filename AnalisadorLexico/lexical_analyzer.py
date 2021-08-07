@@ -259,4 +259,12 @@ def start_lexical_analyzer(file, afd, set_error=None):
         if last_regex is not None and last_regex != "-":
             symbol_table.append((line[lexeme_begin:i], last_regex))
 
+    row_format = "{:>20}" * 2
+
+    output_file = open("debug/ST.txt", "w")
+    output_file.write(row_format.format("Lexema", "Token") + "\n")
+
+    for i in symbol_table:
+        output_file.write(row_format.format(*i) + "\n")
+
     return symbol_table
