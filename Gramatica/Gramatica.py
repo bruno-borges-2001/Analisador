@@ -234,6 +234,9 @@ class Grammar:
                 if a is None:
                     alpha = list(p[:idot])
 
+                    if len(alpha) == 0:
+                        alpha = ["&"]
+
                     if A != nG.S:
                         ACTION[(i, b)] = ("reduce", A, alpha)
 
