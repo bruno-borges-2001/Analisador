@@ -14,8 +14,10 @@ def format_action(action, P):
         return "acc"
 
 
-def pretty_print(C, ACTION, GOTO, N, T, P):
-    P = P.unpack_productions()
+def pretty_print(C, ACTION, GOTO, G):
+    N = G.N
+    T = G.T
+    P = G.unpack_productions()
     T.append("$")
     f = open("print.txt", "w+")
     header = [" ", "ACTION", "GOTO"]

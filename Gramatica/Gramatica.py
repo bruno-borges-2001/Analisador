@@ -228,7 +228,10 @@ class Grammar:
 
                 # rule A
                 if a in nG.T and a != b and Ij in C:
-                    ACTION[(i, a)] = ("shift", C.index(Ij))
+                    if (i, a) in ACTION:
+                        raise Exception("Grammar is not LR(1)")
+                    else:
+                        ACTION[(i, a)] = ("shift", C.index(Ij))
 
                 # rule B
                 if a is None:
@@ -238,7 +241,10 @@ class Grammar:
                         alpha = ["&"]
 
                     if A != nG.S:
-                        ACTION[(i, b)] = ("reduce", A, alpha)
+                        if (i, b) in ACTION:
+                            raise Exception("Grammar is not LR(1)")
+                        else:
+                            ACTION[(i, b)] = ("reduce", A, alpha)
 
                 # rule C
                 if A == nG.S and p == ("S", ".") and b == "$":
