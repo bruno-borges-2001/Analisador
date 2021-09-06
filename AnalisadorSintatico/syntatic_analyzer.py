@@ -19,6 +19,7 @@ def clr_1(grammar, sentence):
             action = action_table[(last, lookahead)]
 
             if ('accept' in action):
+                print("Accept")
                 return True
 
             elif ('shift' in action):
@@ -29,15 +30,23 @@ def clr_1(grammar, sentence):
                 stack.append(action[1])
 
             elif ('reduce' in action):
-
-                for x in len(action[2]) * 2:
-                    print('Pop')
+                if (action[2] == ['&']):
                     stack.pop()
-                old_last = stack[-1]
-                last = stack.append(action[1])
-                goto = goto_table[(old_last, last)]
-                stack.append(goto[1])
+                    old_last = stack[-1]
+                    stack.append(action[1])
+                    last = stack[-1]
+                    goto = goto_table[(old_last, last)]
+                    stack.append(goto)
+                else:
+                    for x in range(len(action[2]) * 2):
+                        stack.pop()
+                    old_last = stack[-1]
+                    stack.append(action[1])
+                    last = stack[-1]
+                    goto = goto_table[(old_last, last)]
+                    stack.append(goto)
+
         else:
             break
-    
+
     return False
