@@ -10,7 +10,8 @@ def clr_1(grammar, sentence):
     stack.append(0)
     lookahead = sentence[0]
     index = 0
-
+    print(action_table)
+    print(goto_table)
     while True:
         last = stack[-1]
 
@@ -46,6 +47,11 @@ def clr_1(grammar, sentence):
                     goto = goto_table[(old_last, last)]
                     stack.append(goto)
 
+        elif last in goto_table:
+            # I don't know if this case can happen, but it treats an event where
+            # reduce doesn't ocurrs and the last element on stack is a Non-Terminal.
+                goto = goto_table[(stack[-2], last)]
+                stack.append(goto)
         else:
             break
 
