@@ -10,12 +10,14 @@ def clr_1(grammar, sentence):
     stack.append(0)
     lookahead = sentence[0]
     index = 0
+
     print(action_table)
     print(goto_table)
+
     while True:
+    
         last = stack[-1]
 
-        print(stack)
         if (last, lookahead) in action_table:
             action = action_table[(last, lookahead)]
 

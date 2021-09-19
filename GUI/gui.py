@@ -5,7 +5,7 @@ from tkinter import filedialog
 from tkinter import ttk
 from tkinter.font import Font
 from AnalisadorLexico import insert_token, start_lexical_analyzer
-
+from Gramatica import *
 
 class GUI:
 
@@ -21,8 +21,8 @@ class GUI:
         self.frame_token.place(x=290, y=5)
         self.frame_symbol_table = Frame(self.app)
         self.frame_symbol_table.place(x=575, y=5)
-        self.frame_commands = Frame(self.app)
-        self.frame_commands.place(x=1000, y=5)
+     
+        
         # Code
         self.code_label = Label(self.frame_code, text="Code")
         self.code_label.pack(side=TOP)
@@ -61,13 +61,14 @@ class GUI:
         self.symbol_table.heading("Lexema", text="Lexema")
         self.symbol_table.heading("Token", text="Token")
 
-        # Command Buttons - Not implement yet
+        # Command Buttons
         self.button_start = Button(
             self.frame_symbol_table, text="Start", command=self.start_analyzer)
         self.button_start.pack(pady=10, side=BOTTOM)
 
         self.bold_font = Font(family="Helvetica", weight="bold")
         self.code_text_area.tag_configure("BOLD", font=self.bold_font)
+
         mainloop()
 
     def open_file_code(self):
@@ -104,3 +105,79 @@ class GUI:
             StringIO(text_code), afd, self.set_error)
         for i in symbol_table_output:
             self.symbol_table.insert('', 'end', values=(i[0], i[1]))
+
+    def create_parsing_table(self, action, goto, symbols):
+        def get_last_state_index():
+            action_last_state_index = sorted(list(action.keys()))[-1][0]
+            goto_last_state_index = sorted(list(goto.keys()))[-1][0]
+            state_index = 0
+            if action_last_state_index > goto_last_state_index:
+                state_index = action_last_state_index
+            else:
+                state_index = goto_last_state_index
+            return state_index
+
+        def action_goto_empty_filled():
+
+            state_index = get_last_state_index()
+            dict_action_goto = {**action, **goto}
+            for i in range(state_index + 1):
+                for symbol in symbols:
+                    if (i,symbol) not in dict_action_goto:
+                        dict_action_goto[(i,symbol)] = '-'
+            dict_action_goto = sorted(dict_action_goto.items())
+            return dict_action_goto
+
+        def create_parsing_table_formatted():
+            parsing_table = {}
+            dict_action_goto = action_goto_empty_filled()
+            parsing_table_formatted = []
+            for x,y in dict_action_goto:
+                if x[0] in parsing_table:
+                    parsing_table[x[0]].append(y)
+                else:
+                    parsing_table[x[0]] = [y]
+
+            for x in parsing_table.items():
+                a = x[1].copy()
+                a.insert(0, x[0])
+                parsing_table_formatted.append(tuple(a))
+                
+
+            return parsing_table_formatted
+
+        parsing_table = create_parsing_table_formatted()
+
+        # Parsing Table
+        self.parsing_table_window = Toplevel(self.app)
+        self.parsing_table_window.title("Parsing Table")
+        self.frame_parsing_table = Frame(self.parsing_table_window)
+        self.frame_parsing_table.pack(fill='x')
+        self.parsing_table_label = Label(
+        self.frame_parsing_table, text="Parsing Table")
+        self.parsing_table_label.pack(side=TOP)
+        self.parsing_table_frame = Frame(self.frame_parsing_table)
+        self.parsing_table_frame.pack(fill='x')
+        table_scroll = Scrollbar(self.parsing_table_frame)
+        table_scrollx = Scrollbar(self.parsing_table_frame, orient=HORIZONTAL)
+        self.parsing_table = ttk.Treeview(
+            self.parsing_table_frame, height=20,
+            yscrollcommand=table_scroll.set,
+            xscrollcommand=table_scrollx.set)
+        table_scrollx.pack(side=BOTTOM, fill=X)
+        table_scrollx.config(command=self.parsing_table.xview)
+        table_scroll.pack(side=RIGHT, fill=Y)
+        table_scroll.config(command=self.parsing_table.yview)
+        self.parsing_table.pack(side=TOP, fill='x')
+
+        self.parsing_table['columns'] = tuple(["States"]+symbols)
+        self.parsing_table.column("#0", width=0, stretch=NO)
+        self.parsing_table.column("States", anchor=CENTER, width=120)
+        self.parsing_table.heading("States", text="States")
+
+        for i in symbols:
+            self.parsing_table.column(i, anchor=CENTER, width=120)
+            self.parsing_table.heading(i, text=i)
+
+        for i in parsing_table:
+            self.parsing_table.insert('', 'end', values=i)
